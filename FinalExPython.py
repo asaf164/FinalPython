@@ -1,6 +1,24 @@
-import sys
+#FinalPythonExercise - Asaf Biran 10.17.25
+#To encrypt type encrypt and then the text you want to encrypt
+# the encrypted message will be found in: encrypted_msg.txt
+#to  decrypt type the command decrypt and the last encrypted message will be revealed
 
-cmd = sys.argv[1]
+
+import sys
+import logging
+
+#logging setup
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger()
+
+try:
+    cmd = sys.argv[1]
+    log.info("received command: %s", cmd)
+except IndexError:
+    log.error("did not get encrypt/decrypt cmd. exiting..")
+    print("did not get encrypt/decrypt cmd.exiting..")
+    exit(-1)
+
 
 decrypt_table = {
     56: "A", 57: "B", 58: "C", 59: "D", 40: "E", 41: "F", 42: "G", 43: "H",
@@ -12,14 +30,58 @@ decrypt_table = {
     94: "w", 95: "x", 96: "y", 97: "z", 98: " ", 99: ",", 100: ".", 101: "'",
     102: "!", 103: "-"
     }
-    
-encrypt_table = {}
- 
-for k, v in decrypt_table.items():
-    encrypt_table[v] = k  # אם הציון לא קיים עדיין, צור רשימה חדשה
 
-print("e", encrypt_table["T"])
-print("d", decrypt_table[65])
+encrypt_table = {}
+
+for k, v in decrypt_table.items():
+    encrypt_table[v] = k              #loop to flip the vars for the encryption table
+
+def encrypt(text):
+    return ",".join(str(encrypt_table[ch]) for ch in text)  #converts text into a list of encrypted nums
+
+def decrypt(numbers):
+    nums = [int(x) for x in numbers.split(",")]
+    return "".join(decrypt_table[num] for num in nums)  #turns the numbers into text
+
+assert encrypt("hello world") == "19,16,33,33,36,98,94,36,39,33,15", "encryption failed"
+assert decrypt("19,16,33,33,36,98,94,36,39,33,15") == "hello world", "decryption failed"
+
+
+if cmd == "encrypt":
+    try:
+        text = " ".join(sys.argv[2:])
+        log.info("text to encrypt: %s", text)
+        if not text.strip():
+            log.error("no text provided to encrypt")
+            print("Error: no text provided to encrypt")
+        else:
+            encrypted = encrypt(text)
+            with open("encrypted_msg.txt", "w") as f:   #opens the file and puts it on write mode
+                f.write(encrypted)
+            log.info("message encrypted and saved to file")
+            print("Message encrypted and saved to encrypted_msg.txt")
+    except Exception as e:
+        log.error("encryption failed: %s", e)
+        print("Encryption failed:", e)   #incase of a usage of a letter not in the bracket
+
+elif cmd == "decrypt":
+    try:
+        with open("encrypted_msg.txt", "r") as f:   #opens the file and puts it in read mode
+            content = f.read()   #saves the content of the file into 'content'
+        message = decrypt(content)   #decrypts the message
+        log.info("decrypted message: %s", message)
+        print("Decrypted message:", message)
+    except FileNotFoundError:
+        log.error("file not found")
+        print("File not found")
+    except ValueError as e:
+        log.error("decryption error: %s", e)
+        print("Error:", e)
+
+
+print ("cmd:", cmd)  #shows the user what command he used
+
+
     
 
 
